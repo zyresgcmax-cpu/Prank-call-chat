@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prank Call Ultra</title>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#000;
+  color:white;
+  max-width:420px;
+  margin:auto;
+}
+
+/* HOME */
+.container{
+  padding:20px;
+  text-align:center;
+}
+
+input,select,button{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:none;
+  border-radius:12px;
+}
+
+button{background:#00c853;color:white;}
+
+/* CALL SCREEN */
+#callScreen{
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background:black;
+  text-align:center;
+  padding-top:100px;
+}
+
+.caller{font-size:28px;}
+.timer{margin-top:10px;font-size:18px;}
+
+.btns{
+  position:absolute;
+  bottom:60px;
+  width:100%;
+}
+
+.btn{
+  width:80px;height:80px;
+  border-radius:50%;
+  font-size:22px;
+  margin:20px;
+}
+
+.green{background:#00c853;}
+.red{background:#d50000;}
+
+/* CHAT */
+#chatScreen{display:none;height:100vh;background:#121212;}
+
+.topbar{
+  background:#1f1f1f;
+  padding:10px;
+  display:flex;
+  align-items:center;
+}
+
+.dp{
+  width:40px;height:40px;
+  border-radius:50%;
+  margin-right:10px;
+}
+
+.chatbox{
+  padding:10px;
+  height:65vh;
+  overflow-y:auto;
+}
+
+.msg{
+  max-width:75%;
+  padding:10px;
+  margin:6px;
+  border-radius:10px;
+}
+
+.left{background:#2a2a2a;}
+.right{background:#075e54;margin-left:auto;}
+
+.time{font-size:10px;opacity:0.6;}
+
+.inputbar{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  max-width:420px;
+  display:flex;
+  background:#1f1f1f;
+}
+
+.inputbar input{flex:1;padding:12px;border:none;}
+.inputbar button{width:70px;font-size:12px;}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h2>🔥 Prank Call Ultra</h2>
+
+<input type="text" id="name" placeholder="Caller Name">
+<input type="file" id="dpInput" accept="image/*">
+
+<select id="delay">
+  <option value="3000">3 sec</option>
+  <option value="5000">5 sec</option>
+  <option value="10000">10 sec</option>
+</select>
+
+<button onclick="startCall()">📞 Fake Call</button>
+<button onclick="openChat()">💬 Fake Chat</button>
+</div>
+
+<!-- CALL -->
+<div id="callScreen">
+  <div class="caller" id="callerName"></div>
+  <div class="timer" id="callTimer">Calling...</div>
+
+  <div class="btns">
+    <button class="btn green" onclick="acceptCall()">✔</button>
+    <button class="btn red" onclick="endCall()">✖</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chatScreen">
+<div class="topbar">
+  <img id="dp" class="dp">
+  <div>
+    <b id="chatName"></b><br>
+    <small>online</small>
+  </div>
+</div>
+
+<div class="chatbox" id="chatBox"></div>
+
+<div class="inputbar">
+  <input type="text" id="msg">
+  <button onclick="sendRight()">Me</button>
+  <button onclick="sendLeft()">User</button>
+</div>
+</div>
+
+<audio id="ring" src="https://www.soundjay.com/phone/sounds/phone-ring-01.mp3"></audio>
+<audio id="voice" src="https://www.soundjay.com/human/hello-1.mp3"></audio>
+
+<script>
+let dpURL="";
+let timerInterval;
+
+// DP upload
+document.getElementById("dpInput").addEventListener("change",e=>{
+  dpURL=URL.createObjectURL(e.target.files[0]);
+});
+
+// CALL
+function startCall(){
+  let name=document.getElementById("name").value||"Unknown";
+  let delay=document.getElementById("delay").value;
+
+  setTimeout(()=>{
+    document.querySelector(".container").style.display="none";
+    document.getElementById("callScreen").style.display="block";
+    document.getElementById("callerName").innerText=name;
+
+    let audio=document.getElementById("ring");
+    audio.loop=true;
+    audio.play();
+  },delay);
+}
+
+function acceptCall(){
+  stopAudio();
+  startTimer();
+  document.getElementById("voice").play();
+}
+
+function endCall(){
+  stopAudio();
+  clearInterval(timerInterval);
+  document.getElementById("callScreen").style.display="none";
+  document.querySelector(".container").style.display="block";
+}
+
+function stopAudio(){
+  let a=document.getElementById("ring");
+  a.pause();a.currentTime=0;
+}
+
+// CALL TIMER
+function startTimer(){
+  let sec=0;
+  timerInterval=setInterval(()=>{
+    sec++;
+    let m=Math.floor(sec/60);
+    let s=sec%60;
+    document.getElementById("callTimer").innerText=
+      m+":"+(s<10?"0"+s:s);
+  },1000);
+}
+
+// CHAT
+function openChat(){
+  let name=document.getElementById("name").value||"User";
+  document.querySelector(".container").style.display="none";
+  document.getElementById("chatScreen").style.display="block";
+  document.getElementById("chatName").innerText=name;
+
+  if(dpURL) document.getElementById("dp").src=dpURL;
+}
+
+// MSG
+function sendRight(){
+  let msg=document.getElementById("msg").value;
+  if(msg==="") return;
+
+  addMsg(msg,"right");
+  document.getElementById("msg").value="";
+  autoReply();
+}
+
+function sendLeft(){
+  let msg=document.getElementById("msg").value;
+  if(msg==="") return;
+
+  addMsg(msg,"left");
+  document.getElementById("msg").value="";
+}
+
+function addMsg(msg,side){
+  let div=document.createElement("div");
+  div.className="msg "+side;
+
+  let time=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
+  div.innerHTML=msg+"<div class='time'>"+time+"</div>";
+
+  document.getElementById("chatBox").appendChild(div);
+  document.getElementById("chatBox").scrollTop=9999;
+}
+
+// AUTO REPLY
+function autoReply(){
+  setTimeout(()=>{
+    let replies=["Hello 😄","Kya kar raha hai?","😂","Call kar","Busy hu"];
+    let msg=replies[Math.floor(Math.random()*replies.length)];
+    addMsg(msg,"left");
+  },2000);
+}
+</script>
+
+</body>
+</html>
